@@ -44,11 +44,11 @@ class HdfUtility:
         # 读Indicator：       kind1='Indicator',kind2='Indicator_name',kind3=None
         store = HDFStore(path,mode = 'r')
         if kind1 == EXT_Rawdata:
-            key = kind1+'/'+excode+'/'+symbol+'/'+kind3
+            key = '/'.join([kind1,excode,symbol,kind3])
         elif kind1 == EXT_Stitch:
-            key = kind1+'/'+excode+'/'+symbol+'/'+EXT_Rule+'/'+kind2 if kind3 == None else kind1+'/'+excode+'/'+symbol+'/'+EXT_Period+'/'+kind3+'/'+kind2
+            key = '/'.join([kind1,excode,symbol,EXT_Rule,kind2]) if kind3 == None else '/'.join([kind1,excode,symbol,EXT_Period,kind3,kind2])
         elif kind1 == EXT_Indicator:
-            key = kind1+'/'+excode+'/'+symbol+kind2
+            key = '/'.join([kind1,excode,symbol,kind2])
         else:
             print("kind not supported")
             return
@@ -71,11 +71,11 @@ class HdfUtility:
         # 写Indicator：       kind1='Indicator',kind2='Indicator_name',kind3='params'
         store = HDFStore(path,mode='a')
         if kind1 == EXT_Rawdata:
-            key = kind1+'/'+excode+'/'+symbol+'/'+kind3
+            key = '/'.join([kind1,excode,symbol,kind3])
         elif kind1 == EXT_Stitch:
-            key = kind1+'/'+excode+'/'+symbol+'/'+EXT_Rule+'/'+kind2 if kind3 == None else kind1+'/'+excode+'/'+symbol+'/'+EXT_Period+'/'+kind3+'/'+kind2
+            key = '/'.join([kind1,excode,symbol,EXT_Rule,kind2]) if kind3 == None else '/'.join([kind1,excode,symbol,EXT_Period,kind3,kind2])
         elif kind1 == EXT_Indicator:
-            key = kind1+'/'+excode+'/'+symbol+kind2
+            key = '/'.join([kind1,excode,symbol,kind2])
         else:
             print("kind not supported")
             return
@@ -86,14 +86,26 @@ class HdfUtility:
                 store[key]
             except KeyError: # 路径不存在时创建
                 store[key] = indata
-                f[key].attrs['Params'] = kind3
+                for param_names, value in kind3.items():
+                    f[key].attrs['param_names'] = value
             else:
-                if f[key].attrs['Params'] == kind3: #Params匹配时合并
-                    adddata = indata[~indata.index.isin(store[key].index)]
-                    store.append(key,adddata)
-                else: # Params不匹配时覆盖
+                temp = 0
+                try: 
+                    f[key].attrs[[i for i in kind3.keys()][0]]#不存在该参数
+                except KeyError:
                     store[key] = indata
-                    f[key].attrs['Params'] = kind3
+                    for param_names, value in kind3.items():
+                        f[key].attrs['param_names'] = value
+                else:
+                    for param_names, value in kind3.items():
+                        temp = (f[key].attrs[param_names] != value)+temp
+                    if temp == 0: #Params匹配时合并
+                        adddata = indata[~indata.index.isin(store[key].index)]
+                        store.append(key,adddata)
+                    else: # Params不匹配时覆盖
+                        store[key] = indata
+                        for param_names, value in kind3.items():
+                            f[key].attrs['param_names'] = value
             f.close()
             store.close()
         else:
@@ -103,7 +115,7 @@ class HdfUtility:
                 store[key] = indata
             else:
                 adddata = indata[~indata.index.isin(store[key].index)]
-                if kind2 in [EXT_Series_00,EXT_Series_01] and adddata.size !=0:
+                if kind2 in [EXT_Series_00,EXT_Series_01]:
                     adddata[EXT_Out_AdjFactor] = adddata[EXT_Out_AdjFactor]*store[key][EXT_Out_AdjFactor].iloc[-1]/adddata[EXT_Out_AdjFactor].iloc[0]
                 store.append(key,adddata)
             store.close()

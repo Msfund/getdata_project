@@ -34,12 +34,9 @@ class HisFutureTick(object):
                     rarpaths.append(filepath)
         #   iterate every rar file
         for rarpath in rarpaths:
-            #f = rarfile.RarFile(rarpath)
-            #f.extractall(path=data_temp,pwd='www.jinshuyuan.net')
+            f = rarfile.RarFile(rarpath)
+            f.extractall(path=data_temp,pwd='www.jinshuyuan.net')
             #   get the tick data file
-            # ------------test--------------
-            
-            # ------------test--------------
             files_tick = self.listFiles(path =data_temp)
             file_SN_df = self.getSeriesNum(tickfiles=files_tick)
             #   get the bar data and save it in the path_output_bar, file name is as TickerSim_freq.csv
@@ -102,8 +99,12 @@ class HisFutureTick(object):
         timeRange = self.getTradeTimeRange(tickerSim, type_l=tradetime)
 
         if tick_rawdata.size <= 0:
-            bar1min_fmt = pd.DataFrame(columns = [i for i in header_dict.keys()], index=[0])
-            bar1min_fmt[EXT_Bar_DateTime]=pd.to_datetime(tradeDate+' '+timeRange[-1][-1])
+            #empyt file
+            data_empty = copy.deepcopy(header_dict)
+            for k in data_empty.keys():
+                data_empty[k] = np.NaN
+            data_empty[EXT_Bar_DateTime]=pd.to_datetime(tradeDate+' '+timeRange[-1][-1])
+            bar1min_fmt = pd.DataFrame(data_empty, index=[0])
             bar1min_fmt.set_index(EXT_Bar_DateTime, inplace=True)
         else:
             ## get cleared tick data

@@ -178,8 +178,8 @@ EXT_Header_CSF2 = 'InstrumentID,TradingDay,UpdateTime,LastPrice,BidPrice1,BidVol
 EXT_Header_CSF3 = 'Time,LastPrice,LVolume,BidPrice,BidVolume,AskPrice,AskVolume,OpenInterest,TradeVolume'
 #bar rule, how to get the bar data by tick data
 #Rule1 for CZCE because of missing data —— Turnover data
-EXT_Bar_Rule = { EXT_Bar_Open:'first', EXT_Bar_Close: 'last', EXT_Bar_High:'max',
-                      EXT_Bar_Low:'min',EXT_Bar_Volume: 'sum',EXT_Bar_Turnover:'sum', EXT_Bar_OpenInterest:'last'}
+EXT_Bar_Rule = { EXT_Bar_Open:'first', EXT_Bar_High:'max',  EXT_Bar_Low:'min', EXT_Bar_Close: 'last',
+                    EXT_Bar_Volume: 'sum',EXT_Bar_Turnover:'sum', EXT_Bar_OpenInterest:'last'}
 EXT_Bar_Rule1 = { EXT_Bar_Open:'first', EXT_Bar_Close: 'last', EXT_Bar_High:'max',
                       EXT_Bar_Low:'min',EXT_Bar_Volume: 'sum', EXT_Bar_OpenInterest:'last'}
 #format the header, convert the tick file column to bar header
@@ -218,3 +218,4 @@ EXT_Freq_Period = {'5T':'5m','15T':'15m','30T':'30m','H':'60m'}
 
 # Header to delete when processing data
 EXT_Del_Header = 'AdjFactor,PreSettle,Open,High,Low,Close,Settle,Volume,OpenInterest,ret'
+EXT_NewData_Header = {EXT_Bar_DateTime:'时间',EXT_Bar_Open:'最新',EXT_Bar_High:'最新',EXT_Bar_Low:'最新',EXT_Bar_Close:'最新',EXT_Bar_Volume:'成交量',EXT_Bar_Turnover:'换手率',EXT_Bar_OpenInterest:'持仓',EXT_Bar_Ticker:'合约代码'}

@@ -1,5 +1,6 @@
 import os
 import re
+import csv
 import json
 import shutil
 from datetime import *
@@ -10,13 +11,8 @@ import pandas as pd
 import numpy as np
 import zipfile
 import rarfile
-from pyunpack import Archive
 from dataUlt import *
 from HdfUtility import *
-
-f = rarfile.RarFile('F:\\Fut_Tick_PanKou_Daily\\FutAC_Tick_PanKou_Daily_2017\\FutAC_Tick_PanKou_Daily_201701.rar')
-f.extractall(pwd='www.jinshuyuan.net')
-data_path = 'F:\\Fut_Tick_PanKou_Daily'
 
 class HisFutureTick(object):
     #----------------------------------------------------------------------
@@ -29,47 +25,51 @@ class HisFutureTick(object):
                        path_output_bar='bar', freq=['5T','15T','30T','H']):
         '''packed tick data 2 Bar data'''
         start_time = timeit.default_timer()
-        #get full path
-        
-        path_packedtick = os.path.join(self.data_path)
-        for i in os.listdir(self.data_path):
-            if os.path.splitext(i)[1] == '.txt':
-                with open(os.path.join(self.data_path,i)) as f:
-                    password = [re.findall(r'[a-zA-Z0-9]+.[a-zA-Z0-9]+.[a-zA-Z0-9]+',i) for i in f.readlines() if re.findall(r'[a-zA-Z0-9]+.[a-zA-Z0-9]+.[a-zA-Z0-9]+',i) != []]
-        for i in os.listdir(self.data_path):
-            if os.path.splitext(i)[1] != '.txt':
-                f_packed = self.listFiles(path = os.path.join(self.data_path,i),patter_ex=file_packedtick_ex)
-                for f in f_packed:
-                    self.unpack(f, path_temp)
-                #   get the tick data file
-                    files_tick = self.listFiles(path =path_temp_full, patter_ex=file_unpacked_ex)
-                    file_SN_df = self.getSeriesNum(tickfiles=files_tick)
-                #   get the bar data and save it in the path_output_bar, file name is as TickerSim_freq.csv
-                    for idx, row in file_SN_df.iterrows():
-                        symbol = row[EXT_Info_TickerSim]
-                        #1 min bar
-                        bar1m = self.tick2Bar1m(filename_tick = row[EXT_Info_File], tradetime=['AM', 'PM'])
-                        bar1m.insert(0,EXT_Out_Asset,bar1m.Ticker+'.'+self.exchange)
-                        bar1m.drop('Ticker',axis=1,inplace=True)
-                        bar1m_fm=bar1m.reset_index().set_index([EXT_Bar_DateTime,EXT_Out_Asset])
-                        hdf.hdfWrite(self.bar_path,self.exchange,symbol,bar1m_fm,EXT_Rawdata,None,EXT_Period_1m)
-                        #other freq bars
-                        #-------------------------------------
-                        # new part
-                        tradetime = ['AM', 'PM']
-                        #get info
-                        tickerSim = symbol
-                        tradeDate = row[EXT_Info_TradeDate]
-                        timeRange = self.getTradeTimeRange(tickerSim, type_l=tradetime)
-                        #-------------------------------------
-                        for fr in freq:
-                            #getResampleBar新增个参数
-                            bars_fr = self.getResampleBar(bardata1m=bar1m,tradetime = timeRange, tradeDate =tradeDate, freq=fr)
-                            bars_fr.insert(0,EXT_Out_Asset,bar1m[EXT_Out_Asset])
-                            bars_fr = bars_fr.reset_index()
-                            bars_fr.rename(columns={'index':EXT_Bar_DateTime},inplace = True)
-                            bars_fr_fm=bars_fr.set_index([EXT_Bar_DateTime,EXT_Out_Asset])
-                            hdf.hdfWrite(self.bar_path,self.exchange,symbol,bars_fr_fm,EXT_Rawdata,None,EXT_Freq_Period[fr])
+        rarpaths = []
+        #   get the rar file
+        for root, dirs, files in os.walk(data_path):
+            for file in files:
+                filepath = os.path.join(root, file)
+                if os.path.splitext(filepath)[-1] == '.rar':
+                    rarpaths.append(filepath)
+        #   iterate every rar file
+        for rarpath in rarpaths:
+            #f = rarfile.RarFile(rarpath)
+            #f.extractall(path=data_temp,pwd='www.jinshuyuan.net')
+            #   get the tick data file
+            # ------------test--------------
+            
+            # ------------test--------------
+            files_tick = self.listFiles(path =data_temp)
+            file_SN_df = self.getSeriesNum(tickfiles=files_tick)
+            #   get the bar data and save it in the path_output_bar, file name is as TickerSim_freq.csv
+            for idx, row in file_SN_df.iterrows():
+                symbol = row[EXT_Info_TickerSim]
+                exchange = row[EXT_Info_Exchange]
+                print(exchange,symbol,row[EXT_Info_TradeDate])
+                #1 min bar
+                bar1m = self.tick2Bar1m(filename_tick = row[EXT_Info_File], tradetime=['AM', 'PM'])
+                bar1m.insert(0,EXT_Out_Asset,bar1m.Ticker+'.'+exchange)
+                bar1m.drop('Ticker',axis=1,inplace=True)
+                bar1m_fm=bar1m.reset_index().set_index([EXT_Bar_DateTime,EXT_Out_Asset])
+                hdf.hdfWrite(self.bar_path,exchange,symbol,bar1m_fm,EXT_Rawdata,None,EXT_Period_1m)
+                #other freq bars
+                #-------------------------------------
+                # new part
+                tradetime = ['AM', 'PM']
+                #get info
+                tickerSim = symbol
+                tradeDate = row[EXT_Info_TradeDate]
+                timeRange = self.getTradeTimeRange(tickerSim, type_l=tradetime)
+                #-------------------------------------
+                for fr in freq:
+                    #getResampleBar新增个参数
+                    bars_fr = self.getResampleBar(bardata1m=bar1m,tradetime = timeRange, tradeDate =tradeDate, freq=fr)
+                    bars_fr.insert(0,EXT_Out_Asset,bar1m[EXT_Out_Asset])
+                    bars_fr = bars_fr.reset_index()
+                    bars_fr.rename(columns={'index':EXT_Bar_DateTime},inplace = True)
+                    bars_fr_fm=bars_fr.set_index([EXT_Bar_DateTime,EXT_Out_Asset])
+                    hdf.hdfWrite(self.bar_path,exchange,symbol,bars_fr_fm,EXT_Rawdata,None,EXT_Freq_Period[fr])
 
         elapsed = timeit.default_timer() - start_time
         print("--- %s seconds ---" % elapsed)
@@ -91,43 +91,30 @@ class HisFutureTick(object):
         #if exchange == None:
             #code = tickerSim
         #header_dict = EXT_TICK2Bar_Dict[info[EXT_Info_Exchange]]
-        tick_rawdata = pd.read_table(filename_tick,sep =',')
-        colnames = ",".join(tick_rawdata.columns)
-        colnames = colnames.replace(' ', '')
-        if EXT_Bar_LastTurnover not in colnames:
-            tick_rawdata.insert(0,EXT_Bar_LastTurnover,np.zeros(tick_rawdata.shape[0]))
-            colnames = colnames+','+EXT_Bar_LastTurnover
-            tick_rawdata.insert(0,EXT_Bar_Turnover,np.zeros(tick_rawdata.shape[0]))
-            colnames = colnames+','+EXT_Bar_Turnover
-        header_dict = EXT_TickFileHeaderMap_Dict[colnames] #这里原来是EXT_TickFileHeaderMap_Dict[colnames]
+        csvreader = csv.reader(open(filename_tick))
+        tick_rawdata = pd.DataFrame([row for row in csvreader])
+        tick_rawdata.columns = tick_rawdata.ix[0,:].tolist()
+        tick_rawdata = tick_rawdata.drop([0])
+        # 换手率 ＝ 成交量 / 持仓量
+        tick_rawdata['换手率'] = tick_rawdata['成交量'].astype(int) / tick_rawdata['持仓'].astype(int)
+        header_dict = EXT_NewData_Header
         #TODO: add the evening trading in future
         timeRange = self.getTradeTimeRange(tickerSim, type_l=tradetime)
 
         if tick_rawdata.size <= 0:
-            #empyt file
-            data_empty = copy.deepcopy(header_dict)
-            for k in data_empty.keys():
-                data_empty[k] = np.NaN
-            data_empty[EXT_Bar_DateTime]=pd.to_datetime(tradeDate+' '+timeRange[-1][-1])
-            del data_empty[EXT_Bar_Time]  #新增
-            bar1min_fmt = pd.DataFrame(data_empty, index=[0])
+            bar1min_fmt = pd.DataFrame(columns = [i for i in header_dict.keys()], index=[0])
+            bar1min_fmt[EXT_Bar_DateTime]=pd.to_datetime(tradeDate+' '+timeRange[-1][-1])
             bar1min_fmt.set_index(EXT_Bar_DateTime, inplace=True)
         else:
             ## get cleared tick data
             tick_data = pd.DataFrame(index=tick_rawdata.index)
             for x in header_dict.keys():
-                tick_data[x] =  tick_rawdata[header_dict[x]]
-
-            #create the trade datetime, the logic may be different on exchange or ticker
-            if exchange == EXT_EXCHANGE_CFE :
-                tick_data[EXT_Bar_DateTime] = pd.to_datetime(tradeDate+' '+ tick_data[EXT_Bar_Time])
-            elif exchange == EXT_EXCHANGE_DCE :
-                tick_data[EXT_Bar_DateTime] = pd.to_datetime(tradeDate+' '+tick_data[EXT_Bar_Time])
-            elif exchange == EXT_EXCHANGE_CZCE :
-                tick_data[EXT_Bar_DateTime] = pd.to_datetime(tradeDate+' '+tick_data[EXT_Bar_Time])
-            else:
-                raise NameError(exchange)
-            tick_data = tick_data.drop_duplicates(EXT_Bar_DateTime,keep = 'first')
+                if x == EXT_Bar_Ticker:
+                    tick_data[x] =  tick_rawdata[header_dict[x]]
+                elif x == EXT_Bar_DateTime:
+                    tick_data[x] =  pd.to_datetime(tick_rawdata[header_dict[x]])
+                else:   
+                    tick_data[x] =  tick_rawdata[header_dict[x]].astype(float)
             #add datetime index
             #tick_data.index = tick_data[EXT_Bar_DateTime]
             tick_data.set_index(EXT_Bar_DateTime, inplace=True)
@@ -138,7 +125,7 @@ class HisFutureTick(object):
             tick_data.loc[tick_data[EXT_Bar_OpenInterest]<0, EXT_Bar_OpenInterest] = 0
 
             ## get the 1min Bar data
-            bar1min_raw = tick_data.resample(rule='T', label ='right', closed ='right').agg(EXT_Bar_Rule)
+            bar1min_raw = tick_data.resample(rule='T').agg(EXT_Bar_Rule)
 
 
             time1m = self.getTradeTime(dateStr=tradeDate, tradetimeRange=timeRange, freq='T')
@@ -157,11 +144,7 @@ class HisFutureTick(object):
         bar1min_fmt[EXT_Bar_Open]             = bar1min_fmt[EXT_Bar_Open].fillna(value=bar1min_fmt[EXT_Bar_Close])
         bar1min_fmt[EXT_Bar_High]             = bar1min_fmt[EXT_Bar_High].fillna(value=bar1min_fmt[EXT_Bar_Close])
         bar1min_fmt[EXT_Bar_Low]              = bar1min_fmt[EXT_Bar_Low].fillna(value=bar1min_fmt[EXT_Bar_Close])
-        #add ticker column
-        if tickerSim in EXT_CZCE_ALL:
-            bar1min_fmt[EXT_Bar_Ticker]       = tickerSim+'1'+ticker[-3:]
-        else:
-            bar1min_fmt[EXT_Bar_Ticker]       = ticker
+        bar1min_fmt[EXT_Bar_Ticker]           = ticker
         return bar1min_fmt
     #----------------------------------------------------------------------
     def getResampleBar(self, bardata1m, tradetime,tradeDate, freq='5T'):
@@ -223,29 +206,36 @@ class HisFutureTick(object):
     def getTickDataInfo(self, unpackedFilenameStr):
         '''get the tick data info: ticker, tickerSim, tradingdate, exchange_name'''
         #get ticker
-        str1, str2 = os.path.split(unpackedFilenameStr)
-        match = re.search(pattern='\.', string=str2)
-        ticker=str2[0:match.start()]
-        #get month,day
-        str1, month_day = os.path.split(str1)
-        #get tickerSim name
-        str1, tickerSim = os.path.split(str1)
-        #get year,month
-        str1, year_month = os.path.split(str1)
-        dateStr = year_month+month_day[2:4]
-        ##get exchange
-        #str1, exchange = os.path.split(str1)
-        #if exchange == 'DCE':
-            #exchange = EXT_EXCHANGE_DCE
-        #elif exchange == 'SHFE':
-            #exchange = EXT_EXCHANGE_SHFE
-        #elif exchange == 'CZCE':
-            #exchange = EXT_EXCHANGE_CZCE
-        #elif exchange == 'CFFEX':
-            #exchange = EXT_EXCHANGE_CFE
+        str1 = unpackedFilenameStr.split('\\')[-1][:-4]
+        ticker = re.findall(r'[a-zA-Z]+[0-9]+',str1)
+        if ticker == []:
+            return
+        else:
+            ticker = ticker[0]
+        dateStr = re.findall(r'[0-9]+',str1)[-1]
+# =============================================================================
+#         match = re.search(pattern='\.', string=str2)
+#         ticker=str2[0:match.start()]
+#         #get month,day
+#         str1, month_day = os.path.split(str1)
+#         #get tickerSim name
+#         str1, tickerSim = os.path.split(str1)
+#         #get year,month
+#         str1, year_month = os.path.split(str1)
+#         dateStr = year_month+month_day[2:4]
+# =============================================================================
+        tickerSim = re.findall(r'[A-Z]+',ticker)[0]
+        if tickerSim in EXT_DCE_ALL:
+            exchange ='DCE'
+        elif tickerSim in EXT_SHFE_ALL:
+            exchange ='SHFE'
+        elif tickerSim in EXT_CFE_ALL:
+            exchange ='CFE'
+        elif tickerSim in EXT_CZCE_ALL:
+            exchange ='CZCE'
 
         #info={EXT_Info_Exchange:exchange, EXT_Info_TickerSim:tickerSim, EXT_Info_Ticker:ticker, EXT_Info_TradeDate: dateStr}
-        info={EXT_Info_File:unpackedFilenameStr, EXT_Info_Exchange:self.exchange, EXT_Info_TickerSim:tickerSim, EXT_Info_Ticker:ticker, EXT_Info_TradeDate: dateStr}
+        info={EXT_Info_File:unpackedFilenameStr, EXT_Info_Exchange:exchange, EXT_Info_TickerSim:tickerSim, EXT_Info_Ticker:ticker, EXT_Info_TradeDate: dateStr}
         return info
 
     #----------------------------------------------------------------------
@@ -269,7 +259,8 @@ class HisFutureTick(object):
         info_l = []
         for f in tickfiles:
             info_l.append(self.getTickDataInfo(unpackedFilenameStr=f))
-
+            
+        info_l = [i for i in info_l if i != None]
         file_num_df = pd.DataFrame.from_dict(info_l, orient='columns')
         file_num_df['gbc'] = file_num_df[EXT_Info_TickerSim] + file_num_df[EXT_Info_TradeDate]
         file_num_df[EXT_Info_SeriesNum] = file_num_df.groupby('gbc')[EXT_Info_Ticker].rank(ascending=True)
@@ -290,14 +281,16 @@ class HisFutureTick(object):
         if os.path.exists(path=path):
             shutil.rmtree(path)
     #----------------------------------------------------------------------
-    def listFiles(self, path, patter_ex=['Survey.txt','night']):
+    def listFiles(self, path, pattern = re.compile(r'[a-zA-Z]+[0-9]{4}_[0-9]{8}')):
         '''get all the tick data files in temp path recursively.'''
-        files_list = []
-        for root, dirs, files in os.walk(path, topdown=False):
-            for name in files:
-                if not any(p in name for p in patter_ex):
-                    files_list.append(os.path.join(root, name))
-        return files_list
+        csvpaths = []
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                filepath = os.path.join(root, file)
+                if os.path.splitext(filepath)[-1] == '.csv' and \
+                    len(pattern.findall(filepath)) > 0:
+                    csvpaths.append(filepath)
+        return csvpaths
     #----------------------------------------------------------------------
     def unpack(self, filename, path_temp='temp'):
         '''un pack the zip/rar file to the temp_dir '''
@@ -357,5 +350,9 @@ class HisFutureTick(object):
         rarobj = rarfile.RarFile(rar_file)
         rarobj.extractall(dir_name)
 if __name__ == '__main__':
+    data_path = 'F:\\Fut_Tick_PanKou_Daily'
+    data_temp = 'F:\\temp'
+    bar_path = EXT_Hdf_Path
+    hdf = HdfUtility()
     a = HisFutureTick(data_path,EXT_Hdf_Path)
     a.packedTick2Bar()

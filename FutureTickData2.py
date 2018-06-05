@@ -67,7 +67,7 @@ class HisFutureTick(object):
                     bars_fr.rename(columns={'index':EXT_Bar_DateTime},inplace = True)
                     bars_fr_fm=bars_fr.set_index([EXT_Bar_DateTime,EXT_Out_Asset])
                     hdf.hdfWrite(self.bar_path,exchange,symbol,bars_fr_fm,EXT_Rawdata,None,EXT_Freq_Period[fr])
-
+            self.mkdir(path=path_temp)
         elapsed = timeit.default_timer() - start_time
         print("--- %s seconds ---" % elapsed)
         return
@@ -212,7 +212,7 @@ class HisFutureTick(object):
         if ticker == []:
             return
         else:
-            ticker = ticker[0]
+            ticker = ticker[0].upper()
         dateStr = re.findall(r'[0-9]+',str1)[-1]
 # =============================================================================
 #         match = re.search(pattern='\.', string=str2)

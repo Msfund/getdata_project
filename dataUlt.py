@@ -75,7 +75,7 @@ EXT_DCE_FB = 'FB'
 EXT_DCE_BB = 'BB'
 EXT_DCE_PP = 'PP'
 EXT_DCE_CS = 'CS'
-EXT_DCE_ALL = ['A','M','C','Y','P','L','V','J','I','JM','JD','FB','BB','PP','CS']#'B',
+EXT_DCE_ALL = ['A','B','M','C','Y','P','L','V','J','I','JM','JD','FB','BB','PP','CS']
 # code for Commodity/finance Future in CZCE
 EXT_CZCE_PM = 'PM'
 EXT_CZCE_WH = 'WH'

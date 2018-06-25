@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pandas.io.pytables import HDFStore
 import re
-from getdata_project.dataUlt import *
+from dataUlt import *
 import h5py
 pd.set_option('io.hdf.default_format','table')
 '''
@@ -34,7 +34,7 @@ HDF
 '''
 class HdfUtility:
 
-    def hdfRead(self,path,excode,symbol,kind1,kind2,kind3,startdate=EXT_Start,enddate=EXT_End):
+    def hdfRead(self,path,excode,symbol,kind1,kind2,kind3,startdate=EXT_Start,enddate=EXT_End,is_stitch=True):
         # kind1为 'Rawdata',Stitch','Indicator'
         # kind2为 '00' '01'
         # kind3为 '1d' '60m' '30m' '15m' '5m' '1m'
@@ -53,6 +53,11 @@ class HdfUtility:
             print("kind not supported")
             return
         data = store[key].ix[((store[key].index.get_level_values(0)>=pd.to_datetime(startdate))&(store[key].index.get_level_values(0)<=pd.to_datetime(enddate))),:]
+        if kind1 == EXT_Stitch and is_stitch == True and kind3 != None:
+            data[EXT_Bar_Open] = data[EXT_AdjFactor] * data[EXT_Bar_Open]
+            data[EXT_Bar_High] = data[EXT_AdjFactor] * data[EXT_Bar_High]
+            data[EXT_Bar_Low] = data[EXT_AdjFactor] * data[EXT_Bar_Low]
+            data[EXT_Bar_Close] = data[EXT_AdjFactor] * data[EXT_Bar_Close]
         store.close()
         if kind1 == EXT_Indicator:
             f = h5py.File(path,'r')
@@ -116,6 +121,6 @@ class HdfUtility:
             else:
                 adddata = indata[~indata.index.isin(store[key].index)]
                 if kind2 in [EXT_Series_00,EXT_Series_01]:
-                    adddata[EXT_Out_AdjFactor] = adddata[EXT_Out_AdjFactor]*store[key][EXT_Out_AdjFactor].iloc[-1]/adddata[EXT_Out_AdjFactor].iloc[0]
+                    adddata[EXT_AdjFactor] = adddata[EXT_AdjFactor]*store[key][EXT_AdjFactor].iloc[-1]/adddata[EXT_AdjFactor].iloc[0]
                 store.append(key,adddata)
             store.close()

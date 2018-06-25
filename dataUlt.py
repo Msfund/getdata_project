@@ -1,6 +1,5 @@
 # encoding: UTF-8
-EXT_Data_Path = 'E:\\work\\data_hft'
-EXT_Hdf_Path = 'C:\\Users\\user\\GitHub\\Project1\\out.hdf5'
+EXT_Hdf_Path = 'C:\\Users\\user\\GitHub\\getdata_project\\out.hdf5'
 EXT_Wind_User = 'fe'
 EXT_Wind_Password = 'fe'
 EXT_Wind_Link = '192.168.100.22:1521/winddb'
@@ -26,7 +25,7 @@ EXT_Period_5m = '5m'
 EXT_Period_15m = '15m'
 EXT_Period_60m = '60m'
 EXT_Period_1d = '1d'
-
+EXT_Period_tick = 'tick'
 # code of exchange
 EXT_EXCHANGE_SHFE = 'SHFE' #shang hai Suo
 EXT_EXCHANGE_DCE  = 'DCE'  #Da Lian Suo
@@ -149,6 +148,7 @@ EXT_Bar_Ticker = 'Ticker'
 EXT_Bar_Date = 'Date'
 EXT_Bar_Time = 'Time'
 EXT_Bar_DateTime = 'DateTime'
+EXT_Bar_Asset = 'Asset'
 EXT_Bar_Open = 'Open'
 EXT_Bar_Close = 'Close'
 EXT_Bar_High = 'High'
@@ -172,11 +172,6 @@ EXT_In_Delistdate = 's_info_delistdate'
 
 EXT_Out_Header = 'Date,Asset,PreSettle,Open,High,Low,Close,Settle,Volume,OpenInterest'
 EXT_Out_Header2 = 'Asset,Delistdate'
-EXT_Out_Date = 'Date'
-EXT_Out_Asset = 'Asset'
-EXT_Out_AdjFactor = 'AdjFactor'
-EXT_Out_Close = 'Close'
-EXT_Out_OpenInterest = 'OpenInterest'
 EXT_Out_Delistdate = 'Delistdate'
 
 #citicsf tick file hear, may be change for one TickerSim, so I workaround it by a tickfileheadmap dict.
@@ -225,4 +220,4 @@ EXT_Freq_Period = {'5T':'5m','15T':'15m','30T':'30m','H':'60m'}
 
 # Header to delete when processing data
 EXT_Del_Header = 'AdjFactor,PreSettle,Open,High,Low,Close,Settle,Volume,OpenInterest,ret'
-EXT_NewData_Header = {EXT_Bar_DateTime:'时间',EXT_Bar_Open:'最新',EXT_Bar_High:'最新',EXT_Bar_Low:'最新',EXT_Bar_Close:'最新',EXT_Bar_Volume:'成交量',EXT_Bar_Turnover:'换手率',EXT_Bar_OpenInterest:'持仓',EXT_Bar_Ticker:'合约代码'}
+EXT_NewData_Header = {EXT_Bar_Date:'时间',EXT_Bar_Open:'最新',EXT_Bar_High:'最新',EXT_Bar_Low:'最新',EXT_Bar_Close:'最新',EXT_Bar_Volume:'成交量',EXT_Bar_Turnover:'换手率',EXT_Bar_OpenInterest:'持仓',EXT_Bar_Ticker:'合约代码'}

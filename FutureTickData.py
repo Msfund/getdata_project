@@ -56,7 +56,7 @@ class HisFutureTick(object):
                 bar1m.insert(0,EXT_Bar_Asset,bar1m.Ticker+'.'+exchange)
                 bar1m.drop('Ticker',axis=1,inplace=True)
                 bar1m_fm=bar1m.reset_index().set_index([EXT_Bar_Date,EXT_Bar_Asset])
-                self.hdf.hdfWrite(self.bar_path,exchange,symbol,bar1m_fm,EXT_Rawdata,None,EXT_Period_1m)
+                #self.hdf.hdfWrite(self.bar_path,exchange,symbol,bar1m_fm,EXT_Rawdata,None,EXT_Period_1m)
                 #other freq bars
                 #-------------------------------------
                 # new part

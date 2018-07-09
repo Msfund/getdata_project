@@ -8,7 +8,7 @@ a = HisDayData()
 a.getData(is_save_stitch=True)
 
 # put future high freq data to hdf
-data_path = 'F:\\Fut_Tick_PanKou_Daily\\FutSF_Tick_PanKou_Daily_2018'
+data_path = 'F:\\Fut_Tick_PanKou_Daily\\FutAC_Tick_PanKou_Daily_2017'
 data_temp = 'F:\\temp'
 bar_path = EXT_Hdf_Path
 a = HisFutureTick(data_path,data_temp,bar_path)

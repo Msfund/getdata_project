@@ -124,3 +124,12 @@ class HdfUtility:
                     adddata[EXT_AdjFactor] = adddata[EXT_AdjFactor]*store[key][EXT_AdjFactor].iloc[-1]/adddata[EXT_AdjFactor].iloc[0]
                 store.append(key,adddata)
             store.close()
+    
+    def hdfDel(self,grouppath):
+        # ex.grouppath = '/Rawdata/CFE/IF'
+        with h5py.File(path,'a') as f:
+            del f[grouppath]
+        print(grouppath+' removed ')
+
+        
+

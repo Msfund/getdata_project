@@ -56,7 +56,7 @@ EXT_SHFE_BU = 'BU'
 EXT_SHFE_HC = 'HC'
 EXT_SHFE_NI = 'NI'
 EXT_SHFE_SN = 'SN'
-EXT_SHFE_ALL = ['CU','AL','ZN','RU','AU','AG','RB','PB','BU','HC','NI','SN'] #'FU'：没有数据'WR'：有数据，但交易量太少画不出图
+EXT_SHFE_ALL = ['CU','AL','ZN','RU','AU','AG','RB','PB','BU','HC','NI','SN','FU','WR']
 # code for Commodity/finance Future in DCE
 EXT_DCE_A = 'A'
 EXT_DCE_B = 'B'
@@ -110,8 +110,8 @@ EXT_CZCE_ALL = [EXT_CZCE_PM,EXT_CZCE_WH,EXT_CZCE_CF,EXT_CZCE_SR,EXT_CZCE_OI,
 #                 EXT_CZCE_RS,EXT_CZCE_RM, EXT_CZCE_TC,EXT_CZCE_ZC,EXT_CZCE_JR,
 #                 EXT_CZCE_SF,EXT_CZCE_SM,EXT_CZCE_ER,EXT_CZCE_ME,EXT_CZCE_RO,EXT_CZCE_WS]
 # =============================================================================
-EXT_CZCE_ALL = [EXT_CZCE_CF,EXT_CZCE_SR,EXT_CZCE_TA,EXT_CZCE_LR,EXT_CZCE_FG,
-                EXT_CZCE_RM, ]#EXT_CZCE_SF、EXT_CZCE_JR,EXT_CZCE_SM, 交易量少，画不出图,但是有数据
+#EXT_CZCE_ALL = [EXT_CZCE_CF,EXT_CZCE_SR,EXT_CZCE_TA,EXT_CZCE_LR,EXT_CZCE_FG,
+#                EXT_CZCE_RM, ]#EXT_CZCE_SF、EXT_CZCE_JR,EXT_CZCE_SM, 交易量少，画不出图,但是有数据
 # Wind filename
 EXT_CFE_STOCK_FILE = 'filesync.CIndexFuturesEODPrices'
 EXT_CFE_BOND_FILE = 'filesync.CBondFuturesEODPrices'
